@@ -10,7 +10,6 @@ cask "wezterm" do
   homepage "https://wezterm.org/"
 
   conflicts_with cask: "wezterm"
-  depends_on macos: :mojave
 
   app "WezTerm.app"
 
