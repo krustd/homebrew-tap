@@ -9,8 +9,6 @@ cask "wezterm" do
   desc "GPU-accelerated cross-platform terminal emulator and multiplexer"
   homepage "https://wezterm.org/"
 
-  conflicts_with cask: "wezterm"
-
   app "WezTerm.app"
 
   %w[
