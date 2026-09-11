@@ -1,8 +1,9 @@
-# homebrew-wezterm
+# Homebrew Tap
 
-A Homebrew Tap for installing [wezterm](http://wezfurlong.org/wezterm/) for homebrew users.
+Homebrew packages distributed by `krustd`.
 
 ```bash
-brew tap wez/wezterm
-brew install --cask wez/wezterm/wezterm
+brew install --cask krustd/tap/wezterm
 ```
+
+The repository can also host additional casks under `Casks/` and formulae under `Formula/`.
