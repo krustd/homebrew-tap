@@ -1,8 +1,8 @@
 # NOTE: Updated automatically by the krust/wezterm Gitea Actions workflow.
 # vim:ft=ruby:
 cask "wezterm" do
-  version "20240203-110809-5046fc22"
-  sha256 "e77388cad55f2e9da95a220a89206a6c58f865874a629b7c3ea3c162f5692224"
+  version "20260912-093559-358090ec"
+  sha256 "cbd8435f478e06edd0dec161d517f546014262cf846375166596c26eb609912d"
 
   url "https://krustgitea.iepose.cn/krust/wezterm/releases/download/#{version}/WezTerm-macos-#{version}.zip"
   name "WezTerm"
