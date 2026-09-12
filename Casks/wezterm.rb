@@ -29,6 +29,14 @@ cask "wezterm" do
     end
   end
 
+  # These builds are ad-hoc signed rather than notarized, and Homebrew
+  # quarantines the download, so Gatekeeper would refuse to launch the app.
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args:         ["-dr", "com.apple.quarantine", "#{appdir}/WezTerm.app"],
+                   must_succeed: false
+  end
+
   zap trash: "~/Library/Saved Application State/com.github.wez.wezterm.savedState"
 
   caveats <<~EOS
