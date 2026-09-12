@@ -31,10 +31,13 @@ cask "wezterm" do
 
   # These builds are ad-hoc signed rather than notarized, and Homebrew
   # quarantines the download, so Gatekeeper would refuse to launch the app.
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args:         ["-dr", "com.apple.quarantine", "#{appdir}/WezTerm.app"],
-                   must_succeed: false
+  postflight_steps do
+    if_path_exists "/Applications/WezTerm.app" do
+      run "/usr/bin/xattr",
+          args:           ["-dr", "com.apple.quarantine", "/Applications/WezTerm.app"],
+          must_succeed:   false,
+          writable_paths: ["/Applications"]
+    end
   end
 
   zap trash: "~/Library/Saved Application State/com.github.wez.wezterm.savedState"
