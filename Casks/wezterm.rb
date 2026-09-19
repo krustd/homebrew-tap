@@ -9,6 +9,8 @@ cask "wezterm" do
   desc "GPU-accelerated cross-platform terminal emulator and multiplexer"
   homepage "https://wezterm.org/"
 
+  depends_on :macos
+
   app "WezTerm.app"
 
   %w[
@@ -20,25 +22,45 @@ cask "wezterm" do
     binary "#{appdir}/WezTerm.app/Contents/MacOS/#{tool}"
   end
 
-  preflight do
-    # Move "WezTerm-macos-#{version}/WezTerm.app" out of the subfolder
-    staged_subfolder = staged_path.glob(["WezTerm-*", "wezterm-*"]).first
-    if staged_subfolder
-      FileUtils.mv(staged_subfolder/"WezTerm.app", staged_path)
-      FileUtils.rm_r(staged_subfolder)
+  # Move "WezTerm-macos-#{version}/WezTerm.app" out of the subfolder
+  preflight_steps do
+    if_path_exists "{WezTerm-*,wezterm-*}/WezTerm.app" do
+      move "{WezTerm-*,wezterm-*}/WezTerm.app", ".", source_glob: true
+      remove "{WezTerm-*,wezterm-*}", recursive: true
     end
   end
 
-  # These builds are ad-hoc signed rather than notarized, and Homebrew
-  # quarantines the download, so Gatekeeper would refuse to launch the app.
-  postflight_steps do
-    if_path_exists "/Applications/WezTerm.app" do
-      run "/usr/bin/xattr",
-          args:           ["-dr", "com.apple.quarantine", "/Applications/WezTerm.app"],
-          must_succeed:   false,
-          writable_paths: ["/Applications"]
+  # The release is built in CI without a distributable Apple identity. Re-sign
+  # it on this Mac with the same long-lived local identity after installation.
+  # Keep this as a legacy `postflight` block so codesign can access the user's
+  # login keychain outside the install-steps sandbox.
+  postflight do
+    app = Pathname("/Applications/WezTerm.app")
+    next unless app.exist?
+
+    system_command "/usr/bin/xattr",
+                   args:         ["-dr", "com.apple.quarantine", app],
+                   must_succeed: false
+
+    plist_message = [
+      "Add :NSAppBundlesUsageDescription string WezTerm needs to access",
+      "application bundles when a command launched from the terminal manages applications.",
+    ].join(" ")
+    system_command "/usr/libexec/PlistBuddy",
+                   args:         ["-c", plist_message, app/"Contents/Info.plist"],
+                   must_succeed: false
+
+    signing_identity = "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292"
+    %w[wezterm-mux-server wezterm strip-ansi-escapes wezterm-gui].each do |tool|
+      system_command "/usr/bin/codesign",
+                     args: ["--force", "--options", "runtime", "--sign", signing_identity,
+                            app/"Contents/MacOS"/tool]
     end
+    system_command "/usr/bin/codesign",
+                   args: ["--force", "--options", "runtime", "--sign", signing_identity, app]
   end
+
+  uninstall delete: "/Applications/WezTerm.app"
 
   zap trash: "~/Library/Saved Application State/com.github.wez.wezterm.savedState"
 
