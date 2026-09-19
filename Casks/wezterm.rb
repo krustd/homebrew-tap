@@ -53,11 +53,10 @@ cask "wezterm" do
     signing_identity = "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292"
     %w[wezterm-mux-server wezterm strip-ansi-escapes wezterm-gui].each do |tool|
       system_command "/usr/bin/codesign",
-                     args: ["--force", "--options", "runtime", "--sign", signing_identity,
-                            app/"Contents/MacOS"/tool]
+                     args: ["--force", "--sign", signing_identity, app/"Contents/MacOS"/tool]
     end
     system_command "/usr/bin/codesign",
-                   args: ["--force", "--options", "runtime", "--sign", signing_identity, app]
+                   args: ["--force", "--sign", signing_identity, app]
   end
 
   uninstall delete: "/Applications/WezTerm.app"
