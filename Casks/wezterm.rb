@@ -32,31 +32,49 @@ cask "wezterm" do
 
   # The release is built in CI without a distributable Apple identity. Re-sign
   # it on this Mac with the same long-lived local identity after installation.
-  # Keep this as a legacy `postflight` block so codesign can access the user's
-  # login keychain outside the install-steps sandbox.
-  postflight do
-    app = Pathname("/Applications/WezTerm.app")
-    next unless app.exist?
+  # Explicitly grant the install-step access to the login keychain; unlike the
+  # legacy postflight block, postflight_steps runs inside Homebrew's sandbox.
+  postflight_steps do
+    if_path_exists "/Applications/WezTerm.app" do
+      run "/usr/bin/xattr",
+          args:           ["-dr", "com.apple.quarantine", "/Applications/WezTerm.app"],
+          must_succeed:   false,
+          writable_paths: ["/Applications"]
 
-    system_command "/usr/bin/xattr",
-                   args:         ["-dr", "com.apple.quarantine", app],
-                   must_succeed: false
+      run "/usr/libexec/PlistBuddy",
+          args:           ["-c",
+                           "Add :NSAppBundlesUsageDescription string WezTerm needs to access " \
+                           "application bundles when a command launched from the terminal manages applications.",
+                           "/Applications/WezTerm.app/Contents/Info.plist"],
+          must_succeed:   false,
+          writable_paths: ["/Applications"]
 
-    plist_message = [
-      "Add :NSAppBundlesUsageDescription string WezTerm needs to access",
-      "application bundles when a command launched from the terminal manages applications.",
-    ].join(" ")
-    system_command "/usr/libexec/PlistBuddy",
-                   args:         ["-c", plist_message, app/"Contents/Info.plist"],
-                   must_succeed: false
-
-    signing_identity = "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292"
-    %w[wezterm-mux-server wezterm strip-ansi-escapes wezterm-gui].each do |tool|
-      system_command "/usr/bin/codesign",
-                     args: ["--force", "--sign", signing_identity, app/"Contents/MacOS"/tool]
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292",
+                           "--keychain", "/Users/{{user}}/Library/Keychains/login.keychain-db",
+                           "/Applications/WezTerm.app/Contents/MacOS/wezterm-mux-server"],
+          writable_paths: ["/Users/{{user}}/Library/Keychains/login.keychain-db"]
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292",
+                           "--keychain", "/Users/{{user}}/Library/Keychains/login.keychain-db",
+                           "/Applications/WezTerm.app/Contents/MacOS/wezterm"],
+          writable_paths: ["/Users/{{user}}/Library/Keychains/login.keychain-db"]
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292",
+                           "--keychain", "/Users/{{user}}/Library/Keychains/login.keychain-db",
+                           "/Applications/WezTerm.app/Contents/MacOS/strip-ansi-escapes"],
+          writable_paths: ["/Users/{{user}}/Library/Keychains/login.keychain-db"]
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292",
+                           "--keychain", "/Users/{{user}}/Library/Keychains/login.keychain-db",
+                           "/Applications/WezTerm.app/Contents/MacOS/wezterm-gui"],
+          writable_paths: ["/Users/{{user}}/Library/Keychains/login.keychain-db"]
+      run "/usr/bin/codesign",
+          args:           ["--force", "--sign", "F9B03D815BD4AD9D3E02892CBC3114B9E6F3E292",
+                           "--keychain", "/Users/{{user}}/Library/Keychains/login.keychain-db",
+                           "/Applications/WezTerm.app"],
+          writable_paths: ["/Users/{{user}}/Library/Keychains/login.keychain-db"]
     end
-    system_command "/usr/bin/codesign",
-                   args: ["--force", "--sign", signing_identity, app]
   end
 
   uninstall delete: "/Applications/WezTerm.app"
