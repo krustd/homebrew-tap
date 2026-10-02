@@ -1,0 +1,46 @@
+name: Update Fanqie
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-fanqie
+  cancel-in-progress: false
+
+jobs:
+  update-cask:
+    name: Update Homebrew cask
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Check out tap
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: master
+      - name: Check upstream release and verify new DMGs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/update-fanqie-cask.py
+          ruby -c Casks/fanqie-novel-downloader.rb
+          git diff --check
+      - name: Publish cask update
+        run: |
+          git push --dry-run origin HEAD:master
+          if git diff --quiet -- Casks/fanqie-novel-downloader.rb; then
+            echo "The cask is already current."
+            exit 0
+          fi
+          version=$(sed -n 's/^  version "\([^"]*\)"$/\1/p' Casks/fanqie-novel-downloader.rb)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/fanqie-novel-downloader.rb
+          git commit -m "Update Fanqie Novel Downloader to $version"
+          git push origin HEAD:master

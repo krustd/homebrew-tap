@@ -18,7 +18,18 @@ brew install --cask krustd/tap/fanqie-novel-downloader
 
 The upstream app is not Developer ID signed or notarized. On first launch, allow it in **System Settings → Privacy & Security**. Use the Apple Silicon or Intel build automatically selected by the cask.
 
-To maintain the cask after a new unsigned release:
+The [Update Fanqie workflow](https://github.com/krustd/homebrew-tap/actions/workflows/update-fanqie.yml) checks every six hours and can also be run manually. It selects the newest stable `unsigned-v*` release, requires both macOS DMGs and their SHA-256 entries, verifies new downloads, and commits the cask update automatically. Unchanged versions produce no commit. GitHub may delay scheduled runs.
+
+After the automatic tap update, upgrade on each Mac:
+
+```bash
+brew update
+brew upgrade --cask krustd/tap/fanqie-novel-downloader
+```
+
+The workflow reads releases directly from upstream GitHub and uses the built-in workflow token to update this tap. No fork, Gitea repository, or additional secret is required.
+
+To update the cask manually from a clone of this repository:
 
 ```bash
 python3 scripts/update-fanqie-cask.py
@@ -29,4 +40,4 @@ git commit -m "Update Fanqie Novel Downloader cask"
 git push
 ```
 
-After the tap update is published, run `brew update && brew upgrade --cask krustd/tap/fanqie-novel-downloader` on each Mac. The updater only accepts a latest `unsigned-v*` release with both macOS DMGs and SHA-256 entries. It does not build or sign the app.
+The workflow maintains package metadata. Installation and upgrades on a Mac happen when Homebrew is run. The updater does not build or sign the app.
