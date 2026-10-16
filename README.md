@@ -41,3 +41,13 @@ git push
 ```
 
 The workflow maintains package metadata. Installation and upgrades on a Mac happen when Homebrew is run. The updater does not build or sign the app.
+
+## EasyCLIProxyAPI
+
+Install the latest macOS release from the upstream project:
+
+```bash
+brew install --cask krustd/tap/easycliproxyapi
+```
+
+The `Update EasyCLIProxyAPI` workflow checks `router-for-me/EasyCLIProxyAPI` every six hours, verifies the ARM64 and Intel DMGs, and updates the cask automatically when a new stable release is published.
