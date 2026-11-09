@@ -1,9 +1,9 @@
 cask "fanqie-novel-downloader" do
   arch arm: "aarch64", intel: "x64"
 
-  version "2026.11.8-723-r816"
-  sha256 arm:   "f92e086d619248f4ee4f8ed0032d81ebc4d76f0928a400c08aae968605618276",
-         intel: "ff34a3888de9edfd53cd9bd335a06582f530fa1c2b1c925c2ad4fc8a9d26aac7"
+  version "2026.11.9-342-r818"
+  sha256 arm:   "e0149371113c423f22e2693a7aeb028e7158f8bf538e59b46eda0b7ad2d70d9b",
+         intel: "4aebca6e1d17d995ffe071af7112054b8e93b2a5b79a0786a794bdcc95b0be81"
 
   url "https://github.com/POf-L/Fanqie-novel-Downloader/releases/download/unsigned-v#{version}/FanqieNovelDownloader-tauri-darwin-#{arch}.dmg"
   name "Fanqie Novel Downloader"
